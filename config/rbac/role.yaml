@@ -159,6 +159,7 @@ rules:
   - controlplane.cluster.x-k8s.io
   resources:
   - rosacontrolplanes
+  - rosacontrolplanes/finalizers
   verbs:
   - delete
   - get
