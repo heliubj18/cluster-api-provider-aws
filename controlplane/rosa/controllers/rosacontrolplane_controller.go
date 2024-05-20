@@ -519,16 +519,17 @@ func (r *ROSAControlPlaneReconciler) reconcileExternalAuthProviders(ctx context.
 	// oidc-clients builder
 	clientsBuilders := make([]*cmv1.ExternalAuthClientConfigBuilder, 0, len(authProvider.OIDCClients))
 	for _, client := range authProvider.OIDCClients {
-		secretObj := &corev1.Secret{}
-		err := rosaScope.Client.Get(ctx, types.NamespacedName{Namespace: rosaScope.Namespace(), Name: client.ClientSecret.Name}, secretObj)
-		if err != nil {
-			return fmt.Errorf("failed to get client secret %s: %v", client.ClientSecret.Name, err)
+		builder := cmv1.NewExternalAuthClientConfig().ID(client.ClientID).
+			Component(cmv1.NewClientComponent().Name(client.ComponentName).Namespace(client.ComponentNamespace))
+		if client.ClientSecret.Name != "" {
+			secretObj := &corev1.Secret{}
+			err := rosaScope.Client.Get(ctx, types.NamespacedName{Namespace: rosaScope.Namespace(), Name: client.ClientSecret.Name}, secretObj)
+			if err != nil {
+				return fmt.Errorf("failed to get client secret %s: %v", client.ClientSecret.Name, err)
+			}
+			builder = builder.Secret(string(secretObj.Data["clientSecret"]))
 		}
-		clientSecretValue := string(secretObj.Data["clientSecret"])
-
-		clientsBuilders = append(clientsBuilders, cmv1.NewExternalAuthClientConfig().
-			ID(client.ClientID).Secret(clientSecretValue).
-			Component(cmv1.NewClientComponent().Name(client.ComponentName).Namespace(client.ComponentNamespace)))
+		clientsBuilders = append(clientsBuilders, builder)
 	}
 	externalAuthBuilder.Clients(clientsBuilders...)
 

@@ -99,6 +99,7 @@ type OIDCClientConfig struct {
 
 	// ClientSecret refers to a secret that
 	// contains the client secret in the `clientSecret` key of the `.data` field
+	// +optional
 	ClientSecret LocalObjectReference `json:"clientSecret"`
 
 	// ExtraScopes is an optional set of scopes to request tokens with.
